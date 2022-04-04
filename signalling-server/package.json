@@ -1,0 +1,12 @@
+{
+  "name": "signalling-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node ./server.js"
+  },
+  "dependencies": {
+    "ws": "^8.5.0"
+  }
+}
