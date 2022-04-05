@@ -63,7 +63,7 @@ loginButton.addEventListener('click', (event) => {
 
 const localVideo = document.querySelector('#localVideo')
 const remoteVideo = document.querySelector('#remoteVideo')
-let localStream, connectedUser, localConnection, remoteConnection
+let localStream, connectedUser, localConnection, remoteConnection, dataChannel
 
 const onLogin = (success) => {
   if (success === false) {
@@ -119,6 +119,8 @@ const setupPeerConnection = async (stream) => {
   localConnection = new RTCPeerConnection(configuration)
   remoteConnection = new RTCPeerConnection(configuration)
 
+  remoteConnection.ondatachannel = onDataChannel
+
   localConnection.addEventListener('icecandidate', (event) => {
     if (event.candidate) {
       send({
@@ -134,6 +136,7 @@ const setupPeerConnection = async (stream) => {
   })
 
   stream.getTracks().forEach((track) => localConnection.addTrack(track, stream))
+  openDataChannel()
 }
 
 document.querySelector('#call').addEventListener('click', async () => {
@@ -144,4 +147,55 @@ document.querySelector('#call').addEventListener('click', async () => {
     offer: offer
   })
   localConnection.setLocalDescription(offer)
+})
+
+const received = document.querySelector('#received')
+
+const openDataChannel = () => {
+  const dataChannelOptions = {
+    reliable: true,
+    negotiated: true,
+    id: 0
+  }
+  dataChannel = localConnection.createDataChannel('myLabel', dataChannelOptions)
+  dataChannel.onerror = (error) => {
+    console.log('Data Channel Error:', error)
+  }
+
+  dataChannel.onmessage = (event) => {
+    console.log('Got Data Channel Message', event.data)
+    received.innerHTML += 'recv:' + event.data + '<br/>'
+    received.scrollTop = received.scrollHeight
+  }
+
+  dataChannel.onopen = () => {
+    console.log(connectedUser, 'The Data Channel is onopen')
+    dataChannel.send(connectedUser + ' has Connected')
+  }
+  dataChannel.onclose = () => {
+    console.log('The Data Channel is closed')
+  }
+}
+
+const onDataChannel = (event) => {
+  let dataChannel = event.channel
+  dataChannel.onmessage = (event) => {
+    console.log('Got Data Channel Message', event.data)
+    received.innerHTML += 'recv:' + event.data + '<br/>'
+    received.scrollTop = received.scrollHeight
+  }
+  dataChannel.onopen = () => {
+    console.log(connectedUser, 'on The Data Channel is onopen')
+    dataChannel.send(connectedUser + ' has Connected')
+  }
+  dataChannel.onclose = () => {
+    console.log('The Data Channel is closed')
+  }
+}
+
+document.querySelector('#send').addEventListener('click', (event) => {
+  const val = document.querySelector('#message').value
+  received.innerHTML += 'send:' + val + '<br>'
+  received.scrollTop = received.scrollHeight
+  dataChannel.send(val)
 })
