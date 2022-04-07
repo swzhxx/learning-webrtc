@@ -1,5 +1,6 @@
 <script lang="tsx">
   import { defineComponent, onMounted, reactive } from 'vue'
+  import ByteBuffer from 'bytebuffer'
   import Decoder from './../utils/decoder'
   export default defineComponent({
     name: 'Decoder',
@@ -16,7 +17,8 @@
           return
         }
         response.arrayBuffer().then((res) => {
-          console.log('response', res)
+          let byteBuffer = ByteBuffer.wrap(res)
+          Decoder.fromByteBuffer(byteBuffer)
         })
 
         // let decoder = new Decoder(response.body)
