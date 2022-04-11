@@ -1,7 +1,7 @@
 <script lang="tsx">
   import { defineComponent, onMounted, reactive } from 'vue'
   import ByteBuffer from 'bytebuffer'
-  import Decoder from './../utils/decoder'
+  import flv from './../utils/flv'
   export default defineComponent({
     name: 'Decoder',
     props: {},
@@ -18,7 +18,7 @@
         }
         response.arrayBuffer().then((res) => {
           let byteBuffer = ByteBuffer.wrap(res)
-          Decoder.fromByteBuffer(byteBuffer)
+          flv.fromByteBuffer(byteBuffer)
         })
 
         // let decoder = new Decoder(response.body)

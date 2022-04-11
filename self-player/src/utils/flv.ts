@@ -35,10 +35,10 @@ enum EncodeType {
   AVC = 7
 }
 
-enum AVCPacketType {
+export enum AVCPacketType {
   AVCDecoderConfigurationRecord = 0,
   AVC_NALU = 1,
-  AVC_END_OF_SEQUENCE = 3
+  AVC_END_OF_SEQUENCE = 2
 }
 
 enum AudioSoundFormat {
@@ -135,7 +135,7 @@ class FlvHeader implements FromByteBuffer, FormatPrint {
   }
 }
 
-class Tag implements FromByteBuffer {
+export class Tag implements FromByteBuffer {
   tagHeader: TagHeader
   tagData: VideoData | AudioData | ScriptData | null
   constructor() {
@@ -176,7 +176,7 @@ class Tag implements FromByteBuffer {
   }
 }
 
-class TagHeader implements FromByteBuffer {
+export class TagHeader implements FromByteBuffer {
   // 1 byte:0x08表示音频,0x09表示视频,0x12表示script data
   type: FlvTagType
   // 3 byte:表示TagData大小
@@ -225,7 +225,7 @@ class TagHeader implements FromByteBuffer {
   }
 }
 
-class ScriptData implements FromByteBuffer {
+export class ScriptData implements FromByteBuffer {
   metaInfo: Object
   constructor() {
     this.metaInfo = {}
@@ -249,20 +249,20 @@ class ScriptData implements FromByteBuffer {
     // throw new Error('Method not implemented.')
   }
 }
-class VideoData implements FromByteBuffer {
+export class VideoData implements FromByteBuffer {
   frameType: FrameType
   encodeType: EncodeType
   data: ArrayBuffer
   // acvPacketType 和 compositionTimeOffset 当且仅当为AVC类型才存在
-  // avcPacketType: AVCPacketType | null
-  // compositionTimeOffset: number
+  avcPacketType: AVCPacketType | null
+  compositionTimeOffset: number
 
   constructor() {
     this.frameType = FrameType.KeyFrame
     this.encodeType = EncodeType.AVC
-    // this.avcPacketType = null
+    this.avcPacketType = null
     this.data = new ArrayBuffer(0)
-    // this.compositionTimeOffset = 0
+    this.compositionTimeOffset = 0
   }
   formatPrint() {
     console.log('---------------------video---------------------------')
@@ -278,27 +278,28 @@ class VideoData implements FromByteBuffer {
     let videoArg = buffer.readByte()
     let frameType = ((videoArg & 0b11110000) >> 4) as FrameType
     let encodeType = (videoArg & 0b00001111) as EncodeType
-    // let packetType = null
-    // let compositionTimeOffset = 0
-    // if (encodeType === EncodeType.AVC) {
-    //   packetType = buffer.readByte() as AVCPacketType
-    //   let compositionTime = buffer.readBytes(3)
-    //   if (packetType == AVCPacketType.AVC_NALU) {
-    //     compositionTimeOffset =
-    //       (compositionTime.readInt16() << 8) + compositionTime.readInt8()
-    //   }
-    // }
+    let packetType = null
+    let compositionTimeOffset = 0
+    if (encodeType === EncodeType.AVC) {
+      packetType = buffer.readByte() as AVCPacketType
+      let compositionTime = buffer.readBytes(3)
+      if (packetType == AVCPacketType.AVC_NALU) {
+        compositionTimeOffset =
+          (compositionTime.readInt16() << 8) + compositionTime.readInt8()
+      }
+    }
 
     let data = buffer.slice(buffer.offset, buffer.limit + 1).toArrayBuffer()
     let self = new VideoData()
     self.frameType = frameType
     self.encodeType = encodeType
     self.data = data
-    // self.avcPacketType = packetType
+    self.avcPacketType = packetType
     return self
   }
 }
-class AudioData implements FromByteBuffer {
+
+export class AudioData implements FromByteBuffer {
   soundFormat: AudioSoundFormat
   samplingRate: AudioSamplingRate
   samplingPrecision: AudioSamplingPrecision
@@ -340,7 +341,7 @@ class AudioData implements FromByteBuffer {
   }
 }
 
-class FlvDecoder implements FromByteBuffer {
+class Flv implements FromByteBuffer {
   flvHeader: FlvHeader
   flvBody: Array<Tag>
   constructor() {
@@ -362,4 +363,4 @@ class FlvDecoder implements FromByteBuffer {
   }
 }
 
-export default FlvDecoder
+export default Flv
