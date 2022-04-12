@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 import ByteBuffer from 'bytebuffer'
 // import { deserializeAMF } from 'amf-packet'
 import { fromAMF } from 'amf-codec'
@@ -93,21 +94,22 @@ const number2TagType = (num: number): FlvTagType => {
 }
 
 class FlvHeader implements FromByteBuffer, FormatPrint {
-  //占用3个字节 一般前三个字符固定为FLV
+  // 占用3个字节 一般前三个字符固定为FLV
   signautre: string
-  //占用1个字节
+  // 占用1个字节
   version: number
-  //占用1个字节 第0位和第二位分别表示video和audio存在的情况
+  // 占用1个字节 第0位和第二位分别表示video和audio存在的情况
   flags: number
-  //4个字节，固定为9
+  // 4个字节，固定为9
   dataOffset: number
-  constructor() {
+  constructor () {
     this.flags = 0
     this.version = 0
     this.signautre = ''
     this.dataOffset = 0
   }
-  formatPrint(): void {
+
+  formatPrint (): void {
     console.log('------------------FLV HEADER----------------')
     console.log('signautre :  %s', this.signautre)
     console.log('version   :  %s', this.version)
@@ -115,17 +117,19 @@ class FlvHeader implements FromByteBuffer, FormatPrint {
     console.log('dataOffset:  %s', this.dataOffset)
     console.log('--------------------------------------------')
   }
-  fromByteBuffer(buffer: ByteBuffer): this {
+
+  fromByteBuffer (buffer: ByteBuffer): this {
     throw new Error('Method not implemented.')
   }
-  static fromByteBuffer(buffer: ByteBuffer): FlvHeader {
-    let char1 = String.fromCharCode(buffer.readByte())
-    let char2 = String.fromCharCode(buffer.readByte())
-    let char3 = String.fromCharCode(buffer.readByte())
-    let self = new FlvHeader()
 
-    let version = buffer.readByte()
-    let flags = buffer.readByte()
+  static fromByteBuffer (buffer: ByteBuffer): FlvHeader {
+    const char1 = String.fromCharCode(buffer.readByte())
+    const char2 = String.fromCharCode(buffer.readByte())
+    const char3 = String.fromCharCode(buffer.readByte())
+    const self = new FlvHeader()
+
+    const version = buffer.readByte()
+    const flags = buffer.readByte()
 
     self.signautre = `${char1}${char2}${char3}`
     self.version = version
@@ -138,21 +142,23 @@ class FlvHeader implements FromByteBuffer, FormatPrint {
 export class Tag implements FromByteBuffer {
   tagHeader: TagHeader
   tagData: VideoData | AudioData | ScriptData | null
-  constructor() {
+  constructor () {
     this.tagHeader = new TagHeader()
     this.tagData = null
   }
-  fromByteBuffer(buffer: ByteBuffer): this {
+
+  fromByteBuffer (buffer: ByteBuffer): this {
     throw new Error('Method not implemented.')
   }
-  static fromByteBuffer(buffer: ByteBuffer): Tag {
+
+  static fromByteBuffer (buffer: ByteBuffer): Tag {
     // throw new Error('Method not implemented.')
-    let tagHeader = TagHeader.fromByteBuffer(buffer)
+    const tagHeader = TagHeader.fromByteBuffer(buffer)
 
     let data = buffer.readBytes(tagHeader.dataSize)
 
     data = data.slice()
-    let tag = new Tag()
+    const tag = new Tag()
     let tagData = null
     tag.tagHeader = tagHeader
 
@@ -188,33 +194,36 @@ export class TagHeader implements FromByteBuffer {
   // 3 byte:stream id 总是0
   private streamId: number
 
-  constructor() {
+  constructor () {
     this.type = 0
     this.dataSize = 0
     this.timeStamp = 0
     this.timeStampEx = 0
     this.streamId = 0
   }
-  getTimeStamp(): number {
+
+  getTimeStamp (): number {
     if (this.timeStamp == 1677215) {
       return (this.timeStamp << 8) + this.timeStampEx
     } else {
       return this.timeStamp
     }
   }
-  fromByteBuffer(buffer: ByteBuffer): this {
+
+  fromByteBuffer (buffer: ByteBuffer): this {
     throw new Error('Method not implemented.')
   }
-  static fromByteBuffer(buffer: ByteBuffer): TagHeader {
-    let type = number2TagType(buffer.readByte())
-    let a = buffer.readUint16()
-    let b = buffer.readUint8()
-    let dataSize = (a << 8) + b
-    let timeStamp = (buffer.readUint16() << 8) + buffer.readUint8()
-    let timeStampEx = buffer.readUint8()
-    let streamId = (buffer.readUint16() << 8) + buffer.readUint8()
 
-    let self = new TagHeader()
+  static fromByteBuffer (buffer: ByteBuffer): TagHeader {
+    const type = number2TagType(buffer.readByte())
+    const a = buffer.readUint16()
+    const b = buffer.readUint8()
+    const dataSize = (a << 8) + b
+    const timeStamp = (buffer.readUint16() << 8) + buffer.readUint8()
+    const timeStampEx = buffer.readUint8()
+    const streamId = (buffer.readUint16() << 8) + buffer.readUint8()
+
+    const self = new TagHeader()
     self.type = type
     self.dataSize = dataSize
     self.timeStamp = timeStamp
@@ -226,24 +235,29 @@ export class TagHeader implements FromByteBuffer {
 }
 
 export class ScriptData implements FromByteBuffer {
+  // eslint-disable-next-line @typescript-eslint/ban-types
   metaInfo: Object
-  constructor() {
+  constructor () {
     this.metaInfo = {}
   }
-  formatPrint() {
+
+  formatPrint () {
     console.log('script data  :', this.metaInfo)
   }
-  fromByteBuffer(buffer: ByteBuffer): this {
+
+  fromByteBuffer (buffer: ByteBuffer): this {
     throw new Error('Method not implemented.')
   }
-  static fromByteBuffer(byteBuffer: ByteBuffer): ScriptData {
-    let buffer = Buffer.from(byteBuffer.toArrayBuffer())
-    let onMetaData = fromAMF(buffer)
 
-    let self = new ScriptData()
+  static fromByteBuffer (byteBuffer: ByteBuffer): ScriptData {
+    const buffer = Buffer.from(byteBuffer.toArrayBuffer())
+    const onMetaData = fromAMF(buffer)
+
+    const self = new ScriptData()
     // console.log('onMetaData', onMetaData)
-    let metaInfo = fromAMF(buffer.slice(13))
+    const metaInfo = fromAMF(buffer.slice(13))
     // console.log('metaInfo', metaInfo)
+    // eslint-disable-next-line @typescript-eslint/ban-types
     self.metaInfo = metaInfo as Object
     return self
     // throw new Error('Method not implemented.')
@@ -257,40 +271,43 @@ export class VideoData implements FromByteBuffer {
   avcPacketType: AVCPacketType | null
   compositionTimeOffset: number
 
-  constructor() {
+  constructor () {
     this.frameType = FrameType.KeyFrame
     this.encodeType = EncodeType.AVC
     this.avcPacketType = null
     this.data = new ArrayBuffer(0)
     this.compositionTimeOffset = 0
   }
-  formatPrint() {
+
+  formatPrint () {
     console.log('---------------------video---------------------------')
     console.log('frame type     :', this.frameType)
     console.log('encode type    :', this.encodeType)
     // console.log('avc packet type:', this.avcPacketType)
     // console.log('compos time    :', this.compositionTimeOffset)
   }
-  fromByteBuffer(buffer: ByteBuffer): this {
+
+  fromByteBuffer (buffer: ByteBuffer): this {
     throw new Error('Method not implemented.')
   }
-  static fromByteBuffer(buffer: ByteBuffer): VideoData {
-    let videoArg = buffer.readByte()
-    let frameType = ((videoArg & 0b11110000) >> 4) as FrameType
-    let encodeType = (videoArg & 0b00001111) as EncodeType
+
+  static fromByteBuffer (buffer: ByteBuffer): VideoData {
+    const videoArg = buffer.readByte()
+    const frameType = ((videoArg & 0b11110000) >> 4) as FrameType
+    const encodeType = (videoArg & 0b00001111) as EncodeType
     let packetType = null
     let compositionTimeOffset = 0
     if (encodeType === EncodeType.AVC) {
       packetType = buffer.readByte() as AVCPacketType
-      let compositionTime = buffer.readBytes(3)
-      if (packetType == AVCPacketType.AVC_NALU) {
+      const compositionTime = buffer.readBytes(3)
+      if (packetType === AVCPacketType.AVC_NALU) {
         compositionTimeOffset =
           (compositionTime.readInt16() << 8) + compositionTime.readInt8()
       }
     }
 
-    let data = buffer.slice(buffer.offset, buffer.limit + 1).toArrayBuffer()
-    let self = new VideoData()
+    const data = buffer.slice(buffer.offset, buffer.limit + 1).toArrayBuffer()
+    const self = new VideoData()
     self.frameType = frameType
     self.encodeType = encodeType
     self.data = data
@@ -305,37 +322,41 @@ export class AudioData implements FromByteBuffer {
   samplingPrecision: AudioSamplingPrecision
   track: AudioSoundTrack
   data: ArrayBuffer
-  constructor() {
+  constructor () {
     this.soundFormat = AudioSoundFormat.AAC
     this.samplingRate = AudioSamplingRate.SAMPLING_44_KHZ
     this.samplingPrecision = AudioSamplingPrecision.SND_16_BIT
     this.track = AudioSoundTrack.SND_STEREO
     this.data = new ArrayBuffer(0)
   }
-  formatPrint() {
+
+  formatPrint () {
     console.log('------------------audio-------------------')
     console.log('sound format      :', this.soundFormat)
     console.log('sampling rate     :', this.samplingRate)
     console.log('sampling precision:', this.samplingPrecision)
     console.log('track             :', this.track)
   }
-  fromByteBuffer(buffer: ByteBuffer): this {
+
+  fromByteBuffer (buffer: ByteBuffer): this {
     throw new Error('Method not implemented.')
   }
-  static fromByteBuffer(buffer: ByteBuffer): AudioData {
-    let audioArg = buffer.readByte()
-    let audioFormatType = ((audioArg & 0b11110000) >> 4) as AudioSoundFormat
-    let audioSamplingRate = ((audioArg & 0b00001100) >> 2) as AudioSamplingRate
-    let audioSamplePrecision = ((audioArg & 0b00000010) >>
+
+  static fromByteBuffer (buffer: ByteBuffer): AudioData {
+    const audioArg = buffer.readByte()
+    const audioFormatType = ((audioArg & 0b11110000) >> 4) as AudioSoundFormat
+    const audioSamplingRate = ((audioArg & 0b00001100) >>
+      2) as AudioSamplingRate
+    const audioSamplePrecision = ((audioArg & 0b00000010) >>
       1) as AudioSamplingPrecision
-    let audioTrack = (audioArg & 1) as AudioSoundTrack
-    let self = new AudioData()
+    const audioTrack = (audioArg & 1) as AudioSoundTrack
+    const self = new AudioData()
     self.soundFormat = audioFormatType
     self.samplingRate = audioSamplingRate
     self.samplingPrecision = audioSamplePrecision
     self.track = audioTrack
 
-    let data = buffer.slice(buffer.offset, buffer.limit + 1).toArrayBuffer()
+    const data = buffer.slice(buffer.offset, buffer.limit + 1).toArrayBuffer()
     self.data = data
     return self
   }
@@ -344,20 +365,22 @@ export class AudioData implements FromByteBuffer {
 class Flv implements FromByteBuffer {
   flvHeader: FlvHeader
   flvBody: Array<Tag>
-  constructor() {
+  constructor () {
     this.flvHeader = new FlvHeader()
     this.flvBody = []
   }
-  fromByteBuffer(buffer: ByteBuffer): this {
+
+  fromByteBuffer (buffer: ByteBuffer): this {
     throw new Error('Method not implemented.')
   }
-  static fromByteBuffer(buffer: ByteBuffer): FlvDecoder {
-    let self = new FlvDecoder()
-    let header = FlvHeader.fromByteBuffer(buffer)
+
+  static fromByteBuffer (buffer: ByteBuffer): Flv {
+    const self = new Flv()
+    const header = FlvHeader.fromByteBuffer(buffer)
     header.formatPrint()
     while (true) {
-      let previousTagSize = buffer.readUint32()
-      let tag = Tag.fromByteBuffer(buffer)
+      const previousTagSize = buffer.readUint32()
+      const tag = Tag.fromByteBuffer(buffer)
     }
     return self
   }

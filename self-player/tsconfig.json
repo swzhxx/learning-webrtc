@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "suppressImplicitAnyIndexErrors": true,
     "target": "esnext",
     "module": "esnext",
     "strict": true,
@@ -13,7 +14,7 @@
     "useDefineForClassFields": true,
     "sourceMap": true,
     "baseUrl": ".",
-    "types": ["webpack-env", "jest"],
+    "types": ["webpack-env"],
     "paths": {
       "@/*": ["src/*"],
       "@pkg/*": ["pkg/*"]

@@ -11,9 +11,9 @@ class AVCSequence {
   ppsLength: number
   ppsData: ByteBuffer
   lengthSizeMinusOne: number
-  constructor(videoData: VideoData) {
-    let data = videoData.data
-    let buffer = ByteBuffer.wrap(data)
+  constructor (videoData: VideoData) {
+    const data = videoData.data
+    const buffer = ByteBuffer.wrap(data)
     buffer.readBytes(4)
     this.lengthSizeMinusOne = buffer.readUint8()
     buffer.readByte()
@@ -26,12 +26,12 @@ class AVCSequence {
 }
 
 export default class AVC {
-  static readVideoData(videoData: VideoData): AVCSequence | RawH264Buffer {
+  static readVideoData (videoData: VideoData): AVCSequence | RawH264Buffer {
     if (
-      videoData.avcPacketType == AVCPacketType.AVCDecoderConfigurationRecord
+      videoData.avcPacketType === AVCPacketType.AVCDecoderConfigurationRecord
     ) {
       return new AVCSequence(videoData)
-    } else if (videoData.avcPacketType == AVCPacketType.AVC_NALU) {
+    } else if (videoData.avcPacketType === AVCPacketType.AVC_NALU) {
       return ByteBuffer.wrap(videoData.data)
     } else {
       throw new Error('unimplement videoData.AVC_END_OF_SEQUENCE')
